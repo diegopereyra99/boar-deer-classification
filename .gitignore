@@ -1,0 +1,9 @@
+*.pyc
+*.jpg
+*.jpeg
+*.webp
+*.txt
+
+.vscode/
+.env/
+env/
