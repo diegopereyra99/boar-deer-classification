@@ -64,8 +64,8 @@ while True:
             pred_class_name = class_to_name(pred_prob.argmax())
             conf = confidence_from_prob(class_prob, pred_class_name)
                 
-            print(f"PROBS: boar - {pred_prob.flatten()[0]:.0%}  //  deer - {pred_prob.flatten()[1]:.2%}")
-            print(f"Model predicts {pred_class_name.upper()} with a confidence of {conf:.2%}")
+            print(f"PROBS: boar - {pred_prob.flatten()[0]:.2%}  //  deer - {pred_prob.flatten()[1]:.2%}")
+            print(f"Model predicts {pred_class_name.upper()} with a confidence of {conf:.0%}")
 
     except Exception as ex:
         print(ex)

@@ -1,4 +1,3 @@
-# %%
 from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
 import pandas as pd
@@ -15,8 +14,9 @@ if __name__ == "__main__":
     classes = ["boar", "deer"]
     
     for c in classes:    
-        val_generator = datagen.flow_from_directory(
-            'data/dataset/val',
+        val_generator = datagen.flow_from_dataframe(
+            df_val,
+            'data/imgs',
             target_size=(224, 224),
             batch_size=64,
             class_mode='categorical',
@@ -36,15 +36,3 @@ if __name__ == "__main__":
             for a, q in zip(alphas, qs):
                 file.write(f"{a} {q}\n")
         
-
-# %%
-img = image_utils.load_img(
-    "data/temp.jpg", # val_generator.filepaths[0],
-    target_size=(224, 224),
-    # interpolation='bilinear',
-)
-
-img = image_utils.img_to_array(img)
-img = img / 255.0
-
-# %%
