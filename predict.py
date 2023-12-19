@@ -19,7 +19,8 @@ def confidence_from_prob(p, cl):
         if p > q:
             last_c = c
             continue
-        return last_c
+    
+    return last_c
     
 def class_to_name(pc):
     if pc == 0: 
