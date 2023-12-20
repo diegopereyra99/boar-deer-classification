@@ -4,8 +4,6 @@ import numpy as np
 import pandas as pd
 import keras
 
-from keras.src.utils import image_utils
-
 
 def compute_quantiles(model, step=0.05):
     df_val = pd.read_csv("data/val.csv", names=["filename", "class"])
@@ -14,7 +12,7 @@ def compute_quantiles(model, step=0.05):
     classes = ["boar", "deer"]
     
     quant = {}
-    for c in classes:    
+    for ix, c in enumerate(classes):    
         val_generator = datagen.flow_from_dataframe(
             df_val,
             'data/imgs',
@@ -27,8 +25,9 @@ def compute_quantiles(model, step=0.05):
 
         y_true = val_generator.labels
         y_pred = model.predict(val_generator)
+        print(np.mean(0 == y_pred.argmax(axis=1)))
 
-        E = y_pred.flatten()   # [np.arange(len(y_pred)), y_true]
+        E = y_pred[np.arange(len(y_pred)), ix]
         alphas = np.arange(0, 1, step=step)
         qs = np.quantile(E, alphas)
         quant[c] = (alphas, qs)

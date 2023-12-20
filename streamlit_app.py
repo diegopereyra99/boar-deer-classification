@@ -21,6 +21,7 @@ def load_quantiles(model_fn):
     
     
 def confidence_from_prob(p, quant):
+    last_c = 0
     for c, q in zip(*quant.T):
         if p > q:
             last_c = c
