@@ -1,0 +1,14 @@
+fastapi
+keras
+numpy
+opencv_python
+pandas
+Pillow
+python-multipart
+scikit_learn
+simple_image_download
+streamlit
+tensorflow
+tf_keras_vis
+tqdm
+uvicorn
