@@ -1,14 +1,14 @@
 # Boar - Deer classification
 This repo contains the scripts to download boar/deer images, train a CNN to classify the images and evaluate the model.
 
-## Preparation:
+## Preparation
 The code was run using python 3.10 in Ubuntu 22.04. Build an environment and install dependencies (requirements.txt).
 
 The original image urls provided are in the folder `data/sources`. If desired, these lists of urls can be expaneded using the script `add_urls.py` which adds approximately +1000 images for each class.
 
 Run the script `download_data.py` to download all the images into the folder `data/imgs`.
 
-## Training:
+## Training
 I used Tensorflow to train the image classifier. I tried four different CNN architectures:
 
 - MobileNetV2
@@ -26,7 +26,7 @@ As a part of the evaluation of the model and the confidence of its predictions I
 ## Model deployment
 To deploy the model I used fastapi to build a simple API where you can upload a file or input a new image URL to get the predictions of the model. The response includes the predicted class, the probabilities predicted by the model and the confidence of the predicted class.
 
-I also built an app with streamlit to have a more interactive option. Here I also included the option to show the GradCam++ heatmap over the input image to make a better analysis of the models.
+I also built an app with streamlit to have a more interactive option. Here I included the possibility to show the GradCam++ heatmap over the input image to make a better analysis of the models.
 
 ### FastAPI
 You can deploy your trained model (`model.h5`) by running:
