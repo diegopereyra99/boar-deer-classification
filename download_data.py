@@ -4,7 +4,8 @@ import requests
 from PIL import Image, UnidentifiedImageError
 from tqdm import tqdm
 
-logging.basicConfig(filename="download_logs.txt", level=logging.INFO)      
+os.makedirs("logs/", exist_ok=True)
+logging.basicConfig(filename="logs/download_logs.txt", level=logging.INFO)      
         
 os.makedirs(f"data/imgs", exist_ok=True)
 for fn in os.listdir("data/sources"):    
