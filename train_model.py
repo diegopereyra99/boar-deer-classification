@@ -6,6 +6,7 @@ from keras.layers import Dense, Dropout
 from keras.callbacks import ModelCheckpoint
 from keras.applications import MobileNetV2, ResNet50, EfficientNetV2B3, InceptionV3
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 model_archs = {
     "mobilenet": MobileNetV2,
@@ -32,12 +33,17 @@ if __name__ == "__main__":
     parser.add_argument('--output-name', type=str, default='model.h5', help='Output name for saved model')
     parser.add_argument("--architecture", type=str, default="mobilenet", help="Architecture of the model to be trained", choices=list(model_archs.keys()))
     parser.add_argument("--train-backbone", action="store_true", help="Include this option to train the weights of the backbone")
+    parser.add_argument("--split-seed", type=int, default=0, help="Random seed to split the dataset in train-val")
 
     args = parser.parse_args()
 
+    df = pd.DataFrame(os.listdir("data/imgs"), columns=['filename'])
+    df["class"] = df["filename"].str.split("_").str[0]
 
-    df_train = pd.read_csv("data/train.csv", names=["filename", "class"])
-    df_val = pd.read_csv("data/val.csv", names=["filename", "class"])
+    df_train, df_val = train_test_split(df, test_size=0.2, stratify=df["class"], random_state=args.split_seed)
+
+    df_train.to_csv("data/train.csv", index=False, header=False)
+    df_val.to_csv("data/val.csv", index=False, header=False)
 
     datagen = ImageDataGenerator(rescale=1./255, shear_range=0.2, zoom_range=0.1, rotation_range=20, horizontal_flip=True)
     # val_gen = ImageDataGenerator(rescale=1./255)
@@ -54,6 +60,7 @@ if __name__ == "__main__":
         classes=classes,
     )
 
+    # Has test time augmentation
     val_generator = datagen.flow_from_dataframe(
         df_val,
         'data/imgs',
