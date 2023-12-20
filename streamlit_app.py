@@ -1,3 +1,4 @@
+import cv2
 import streamlit as st
 from PIL import Image
 import tensorflow as tf
@@ -7,6 +8,10 @@ import numpy as np
 
 import numpy as np
 from keras.src.utils import image_utils
+from tf_keras_vis.gradcam_plus_plus import GradcamPlusPlus
+from tf_keras_vis.utils.model_modifiers import ReplaceToLinear
+from tf_keras_vis.utils.scores import CategoricalScore
+
 
 classes = ["boar", "deer"]
 
@@ -23,12 +28,6 @@ def confidence_from_prob(p, quant):
     
     return last_c
     
-def class_to_name(pc):
-    if pc == 0: 
-        return 'boar'
-    else:
-        return 'deer'
-
 def load_model(model_path):
     return tf.keras.models.load_model(model_path)
 
@@ -48,47 +47,73 @@ def predict(model, image):
     predictions = model.predict(image)
     return predictions.flatten()
 
+
+def gradcam_heatmap(gradcam, img, class_ix):
+    prep_img = preprocess_image(img)
+    cam = gradcam(CategoricalScore(class_ix), prep_img)
+    heatmap = cv2.applyColorMap(np.uint8(cam[0]*255), cv2.COLORMAP_JET)[..., ::-1]
+    hmap = cv2.resize(heatmap, img.size)
+    return hmap
+
 def main():
     st.title("Boar - Deer classification")
 
-    # Select a folder containing models
     selected_model = st.sidebar.selectbox("Select model:", os.listdir("data/models"))
 
-    # Load the selected model
     model_path = os.path.join("data/models", selected_model)
     model = tf.keras.models.load_model(model_path)
     
     conf_level = st.sidebar.checkbox("Confidence Level", value=True)
     if conf_level:
         quants = load_quantiles(os.path.basename(model_path))
-
+    
+    apply_gradcam = st.sidebar.checkbox("GradCam++", value=False)
+    if  apply_gradcam:
+        gradcam = GradcamPlusPlus(
+            model,
+            model_modifier=ReplaceToLinear(),
+            clone=True
+        )
+        gc_cl = st.sidebar.selectbox("GradCam looking at:", ["prediction", "boar", "deer"])
+        
+        
     # Upload an image or provide a URL
     uploaded_file = st.file_uploader("Choose an image file:", type=["jpg", "jpeg", "png"])
     image_url = st.text_input("Or enter an image URL:")
 
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded Image.", use_column_width=True)
     elif image_url:
         image = Image.open(requests.get(image_url, stream=True).raw)
-        st.image(image, caption="Image from URL.", use_column_width=True)
+        # st.image(image, caption="Image from URL.", use_column_width=True)
     else:
         st.warning("Please upload an image or provide a URL.")
         st.stop()
 
     predictions = predict(model, image)
+    class_prob = predictions.max()
+    pred_class_name = classes[predictions.argmax()]
 
-
+    if apply_gradcam:
+        cls_ix = classes.index(gc_cl) if gc_cl != "prediction" else predictions.argmax()
+        hmap = gradcam_heatmap(gradcam, image, cls_ix)
+        show_img = cv2.addWeighted(hmap, 0.3, np.array(image), 0.7, 0)
+        show_img = Image.fromarray(show_img)
+    else:
+        show_img = image
+        
+    st.image(show_img, use_column_width=True)
+    
     st.subheader("Class Probabilities:")
     for j, prob in enumerate(predictions):
         st.write(f"{classes[j]}: {prob:.2%}")
     
     if conf_level:
-        class_prob = predictions.max()
-        pred_class_name = class_to_name(predictions.argmax())
         conf = confidence_from_prob(class_prob, quants[pred_class_name])
-            
         st.write(f"Model predicts {pred_class_name.upper()} with a confidence of {conf:.0%}")
 
+    
+    
+    
 if __name__ == "__main__":
     main()

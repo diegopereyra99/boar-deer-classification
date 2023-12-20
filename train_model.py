@@ -1,7 +1,7 @@
 import argparse
 import os
 from keras.preprocessing.image import ImageDataGenerator
-from keras.models import Sequential
+from keras.models import Sequential, Model
 from keras.layers import Dense, Dropout
 from keras.callbacks import ModelCheckpoint
 from keras.applications import MobileNetV2, ResNet50, EfficientNetV2B3, InceptionV3
@@ -65,18 +65,26 @@ if __name__ == "__main__":
     
 
     base_model = load_backbone(args.architecture)
-    base_model.trainable = args.train_backbone
+    for layer in base_model.layers:
+        layer.trainable = args.train_backbone
+        
+    base_out = base_model.output
+    x = Dense(256, activation='relu')(base_out)
+    x = Dropout(0.2)(x)
+    output = Dense(2, activation='sigmoid')(x)
 
-    classifier = Sequential([
-        Dense(256, activation='relu'),
-        Dropout(0.2),
-        Dense(2, activation='sigmoid')
-    ])
+    # classifier = Sequential([
+    #     Dense(256, activation='relu'),
+    #     Dropout(0.2),
+    #     Dense(2, activation='sigmoid')
+    # ])
     
-    model = Sequential([
-        base_model,
-        classifier
-    ])
+    # model = Sequential([
+    #     base_model,
+    #     classifier
+    # ])
+    
+    model = Model(inputs=base_model.inputs, outputs=[output])
 
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
